@@ -9,7 +9,7 @@ executors:
             - DIFF_UPD: "git diff --name-only --diff-filter=ACMR "
             - DIFF_NEW: "git diff --name-only --diff-filter=A "
             - LANG_GREP: " | grep -a "
-            - URL_DOC_CHECKER: "https://github.com/h-fukuda-cy/doc-checker.git"
+            - URL_DOC_CHECKER: "https://github.com/h-fukuda-cy/doc_checker.git"
             - URL_HUGO_TEMPLATE: "https://github.com/CybozuDocs/hugo-template.git"
 
 commands:
