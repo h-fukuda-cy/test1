@@ -1,0 +1,461 @@
+version: 2.1
+
+executors:
+    default:
+        docker:
+            - image: circleci/node:latest
+
+        environment:
+            - DIFF_UPD: "git diff --name-only --diff-filter=ACMR "
+            - DIFF_NEW: "git diff --name-only --diff-filter=A "
+            - LANG_GREP: " | grep -a "
+            - URL_DOC_CHECKER: "https://github.com/CybozuDocs/doc_checker.git"
+            - URL_HUGO_TEMPLATE: "https://github.com/CybozuDocs/hugo-template.git"
+
+commands:
+    prepare_files:
+
+        parameters:
+            lang:
+                type: string
+
+        steps:
+            - run:
+                name: prepare << parameters.lang >> files
+                command: |
+
+                    TGREPO="origin/$(cat targetrepo)"
+
+                    # temporaly files
+                    FILELIST="targetfiles.txt"
+                    DIRLIST="targetdirs.txt"
+
+                    # directories where output files will be placed
+                    SOURCEDIR=$HOME"/orgfiles_<< parameters.lang >>/"
+                    OUTDIR=$HOME"/linttarget_<< parameters.lang >>"
+
+                    if [ "<< parameters.lang >>" = "new" ]; then
+                        # At the current operation, newly added files check will be executed on ja resource only.
+                        echo "Checking newly added files on ja resources."
+                        LANG="'/ja/'"
+
+                        # Make a list of newly added files by 'git diff'.
+                        eval $DIFF_NEW$TGREPO"..."$CIRCLE_BRANCH$LANG_GREP$LANG > $FILELIST || true
+                    else
+                        echo "Checking << parameters.lang >> resources."
+                        LANG="'/<< parameters.lang >>/'"
+
+                        # Make a list of updated files by 'git diff'.
+                        eval $DIFF_UPD$TGREPO"..."$CIRCLE_BRANCH$LANG_GREP$LANG > $FILELIST || true
+                    fi
+
+                    if [ -s $FILELIST ]; then
+                        # Copy target files with directory hierarchy.
+                        # Make a directory list.
+                        sed -e "s/\/[^\/]*$//" $FILELIST > $DIRLIST
+                        # Copy directories.
+                        cat $DIRLIST | xargs -I{} mkdir -p $SOURCEDIR{}
+                        # Copy files.
+                        cat $FILELIST | xargs -I{} sh -c "cat {} > $SOURCEDIR{}"
+
+                        # Replace Hugo tags into html comment tag.
+                        ./preproc $SOURCEDIR
+                        mv ./processed $OUTDIR
+
+                        # Remove temporary files.
+                        rm $FILELIST
+                        rm $DIRLIST
+
+                        # Confirm the result on the console of CircleCI.
+                        ls $OUTDIR
+                    fi
+
+    execute_textlint:
+
+        parameters:
+            lang:
+                type: string
+            number:
+                type: string
+
+        steps:
+            - run:
+                name: execute textlint on << parameters.lang >> files
+                command: |
+
+                    LINTRC=$HOME"/project/doc_checker/.textlintrc_<< parameters.lang >>"
+                    SOURCEDIR=$HOME"/linttarget_<< parameters.lang >>"
+
+                    TMPFILE="./result.tmp"
+                    OUTFILE=$HOME"/results/<< parameters.number >>_tl_result_<< parameters.lang >>.txt"
+
+                    LANGTOML=$HOME"/project/doc_checker/tclint_<< parameters.lang >>.toml"
+                    REGSTR="s/\/home\/circleci\/linttarget_<< parameters.lang >>/<p>/g"
+
+                    if [ -s $SOURCEDIR ]; then
+                        if [ -s $LINTRC ]; then
+                            # Currently zh resources does not have .textlintrc.
+                            echo "Execute textlint for << parameters.lang >> files."
+                            # Execute textlint
+                            $(npm bin)/textlint -c $LINTRC $SOURCEDIR -f compact -o $TMPFILE || true
+                            # echo -n -e "\n" >> $TMPFILE
+                        fi
+
+                        if [ -s $TMPFILE ]; then
+                            # Write header line into the result file.
+                            echo "<hr>[Checking << parameters.lang >> contents by textlint]<br>" > $OUTFILE
+
+                            # Remove CircleCI depended path.
+                            sed -e $REGSTR $TMPFILE >> $OUTFILE
+
+                            # Remove temp file.
+                            rm $TMPFILE
+                        else
+                            echo "*** There is no error."
+                        fi
+
+                        if [ -s $LANGTOML ]; then
+                            # At the newly added files check, this process will be skipped.
+                            echo "Execute tclint for << parameters.lang >> files."
+                            # Execute tclint
+                            cp $LANGTOML ./tclint.toml
+                            ./tclint $SOURCEDIR > $TMPFILE
+
+                            rm ./tclint.toml
+                        fi
+
+                        if [ -s $TMPFILE ]; then
+                            # Write header line into the result file.
+                            echo "<hr>[Checking << parameters.lang >> contents by tclint]<br>" >> $OUTFILE
+
+                            # Remove CircleCI depended path.
+                            sed -e $REGSTR $TMPFILE >> $OUTFILE
+
+                            # Remove temp file.
+                            rm $TMPFILE
+
+                            cat $OUTFILE
+                        else
+                            echo "*** There is no error."
+                        fi
+                    else
+                        echo "*** There are no changed files."
+                    fi
+
+
+    execute_hugo:
+
+        parameters:
+            region:
+                type: string
+            number:
+                type: string
+
+        steps:
+            - run:
+                name: execute Hugo on << parameters.region >>
+                command: |
+
+                    # Currently the target contents are Japanese only
+                    SOURCEDIR=$HOME"/orgfiles_ja/content"
+
+                    TOML=$HOME"/project/config_<< parameters.region >>.toml"
+                    TMPFILE="hugo_error.tmp"
+                    OUTFILE=$HOME"/results/<< parameters.number >>_hugo_error_ja_<< parameters.region >>.txt"
+                    REGSTR="s/\/home\/circleci\/hugowork//g"
+
+                    if [ -s $SOURCEDIR ]; then
+                        echo "Hugo execute for << parameters.region >> region."
+                        cd $HOME/hugowork
+
+                        # remove old files.
+                        rm -rf ./public
+
+                        # Execute Hugo.
+                        ./hugo --config $TOML 2>&1 1>/dev/null | sed -e $REGSTR > $TMPFILE || true
+
+                        if [ -s $TMPFILE ]; then
+                            echo "<hr>[Hugo error on << parameters.region >> region]<br>" > $OUTFILE
+                            cat $TMPFILE >> $OUTFILE
+                            rm $TMPFILE
+                            cat $OUTFILE
+                        else
+                            echo "Hugo executed successfully."
+                        fi
+                    fi
+
+
+    detect_ng_word:
+
+        parameters:
+            region:
+                type: string
+            number:
+                type: string
+
+        steps:
+            - run: 
+                name: NG word detection on << parameters.region >> region
+                command: |
+
+                    # Currently the target resources are Japanese only.
+                    SOURCEDIR=$HOME"/hugowork/public/ja"
+                    TMPFILE="ngword.tmp"
+                    OUTFILE=$HOME"/results/<< parameters.number >>_ngword_ja_<< parameters.region >>.txt"
+                    NGWORDFILE=$HOME"/project/doc_checker/ngword_<< parameters.region >>.txt"
+                    REGSTR="s/\/home\/circleci\/hugowork\/public//g"
+
+                    # Searching for NG words
+                    if [ -s $SOURCEDIR ]; then
+                        cd $HOME/hugowork
+
+                        # Execute NG word checker
+                        ./wordcheck $SOURCEDIR html $NGWORDFILE 2>&1 1>/dev/null | sed -e $REGSTR >> $TMPFILE || true
+
+                        if [ -s $TMPFILE ]; then
+                            echo "<hr>[NG word check on << parameters.region >> region]<br>" > $OUTFILE
+                            cat $TMPFILE >> $OUTFILE
+                            rm $TMPFILE
+                            cat $OUTFILE
+                        else
+                            echo "There is no NG word."
+                        fi
+                    else
+                        echo "*** Could not find 'public/ja' directory"
+                    fi
+
+jobs:
+    build:
+        executor:
+            name: default
+
+        steps:
+            - checkout
+
+            - run:
+                name: Get the base branch name of the pull request
+                command: |
+                    PR_NUM=`echo "${CIRCLE_PULL_REQUEST}" | sed -e 's/.*\///g'`
+                    PROJECT=`echo "${CIRCLE_PULL_REQUEST}" | cut -d "/" -f4`
+
+                    # Retrieve the base branch name using GitHub API.
+                    # The base branch name will be used git diff.
+                    curl -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" -X GET https://api.github.com/repos/${PROJECT}/${CIRCLE_PROJECT_REPONAME}/pulls/${PR_NUM} | jq .base.ref -r > targetrepo
+                   
+                    if [ $(cat targetrepo) = "null" ]; then
+                        # Display data for the error investigation.
+                        echo "Could not find the base repository."
+                        echo "CIRCLE_PROJECT_REPONAME="${CIRCLE_PROJECT_REPONAME}
+                        echo "CIRCLE_PULL_REQUEST="${CIRCLE_PULL_REQUEST}
+                        echo "PR_NUM="${PR_NUM}
+                        echo "PROJECT="${PROJECT}
+                        echo "TOKEN_LENGTH="${#GITHUB_ACCESS_TOKEN}
+                        exit 1
+                    else
+                        echo -n "*** base repository="
+                        cat targetrepo
+                    fi
+
+            - run:
+                name: Prepare node_module
+                command: |
+
+                    git clone $URL_DOC_CHECKER
+
+                    if [ -e ./doc_checker/package.json ]; then
+                        cp ./doc_checker/package.json .
+                    else
+                        echo "Could not find package.json."
+                        exit 1
+                    fi
+
+                    # Install textlint, markdownlint, and other related modules.
+                    npm install
+
+                    # Overwrite with customized files.
+                    cp -r ./doc_checker/node_modules .
+
+            - run:
+                name: Make working directories
+                command: |
+
+                    mkdir $HOME/results
+                    mkdir $HOME/orgfiles_ja
+                    mkdir $HOME/orgfiles_en
+                    mkdir $HOME/orgfiles_zh
+                    mkdir $HOME/orgfiles_new
+                    mkdir $HOME/hugowork
+
+                    # Prepare binary modules
+                    cp $HOME/project/doc_checker/preproc .
+                    chmod +x ./preproc
+
+                    cp $HOME/project/doc_checker/tclint .
+                    chmod +x ./tclint
+
+                    # Copy Hugo binary to the working directory
+                    cp $HOME/project/doc_checker/hugo $HOME/hugowork/.
+                    chmod +x $HOME/hugowork/hugo
+
+                    cp $HOME/project/doc_checker/wordcheck $HOME/hugowork/.
+                    chmod +x $HOME/hugowork/wordcheck
+
+            - prepare_files:
+                lang: "ja"
+
+            - run:
+                name: Check ja files by markdownlint
+                command: |
+
+                    SOURCEDIR=$HOME"/orgfiles_ja/content/ja"
+                    TMPFILE="mdlint.tmp"
+                    OUTFILE=$HOME"/results/01_md_result_ja.txt"
+                    MLJSON=$HOME"/project/content/.markdownlint.json"
+                    REGSTR="s/\/home\/circleci\/orgfiles_ja//g"
+
+                    if [ -s $SOURCEDIR -a -s $MLJSON ]; then
+                        echo "Execute markdownlint."
+
+                        # Execute markdownlint.
+                        $(npm bin)/markdownlint -c $MLJSON $SOURCEDIR 2> $TMPFILE || true
+
+                        if [ -s $TMPFILE ]; then
+                            # Write header line into the result file.
+                            echo "<hr>[Checking ja contents by markdownlint]<br>" > $OUTFILE
+
+                            # Remove CircleCI depended path.
+                            sed -e $REGSTR $TMPFILE >> $OUTFILE
+
+                            # Remove temp file.
+                            rm $TMPFILE
+
+                            cat $OUTFILE
+                        fi
+                    else
+                        echo "*** markdownlint was not executed."
+                    fi
+
+            # Execute textlint on Japanese contents
+            - execute_textlint:
+                lang: "ja"
+                number: "10"
+
+            # Execute textlint on English contents
+            - prepare_files:
+                lang: "en"
+            - execute_textlint:
+                lang: "en"
+                number: "11"
+
+            # Execute textlint on Chinese contents
+            - prepare_files:
+                lang: "zh"
+            - execute_textlint:
+                lang: "zh"
+                number: "12"
+
+            # Execute textlint on newly added contents
+            - prepare_files:
+                lang: "new"
+            - execute_textlint:
+                lang: "new"
+                number: "20"
+
+            # NG word checker will be executed on html files.
+            # Before execute it, make html files building Hugo.
+            # Currently it will be executed on Japanese contents only.
+            # The target regions are both US and CN.
+            - run: 
+                name: Prepare Hugo
+                command: |
+
+                    SOURCEDIR=$HOME"/orgfiles_ja/content"
+
+                    if [ -s $SOURCEDIR ]; then
+                        cd $HOME/hugowork
+                        cp -r $SOURCEDIR .
+                        cp -r $HOME/project/csv .
+
+                        # Make `theme` directory of Hugo and clone `theme` files.
+                        mkdir themes
+                        git clone $URL_HUGO_TEMPLATE themes/hugo-template
+                    fi
+
+            # Execute Hugo only to confirm build error
+            - execute_hugo:
+                region: "jp"
+                number: "30"
+
+            # NG word check on US region
+            - execute_hugo:
+                region: "us"
+                number: "41"
+            - detect_ng_word:
+                region: "us"
+                number: "42"
+
+            # NG word check on CN region
+            - execute_hugo:
+                region: "cn"
+                number: "51"
+            - detect_ng_word:
+                region: "cn"
+                number: "52"
+
+            - run: 
+                name: Post a comment to GitHub
+                command: |
+
+                    ls -l $HOME/results
+
+                    # When file is existed in $HOME/results/.
+                    if [ $(ls -1 $HOME/results/ | wc -l) -gt 0 ]; then
+
+                        # Add starting tag of JSON data.
+                        echo "{\"body\":\"<b>[--- Written by CircleCI ---]<\/b><br>" > $HOME/result.dat
+
+                        # All files are merged into result.dat
+                        for file in $(ls $HOME/results); do
+                            # Regular expressions
+                            # Remove color information by sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})*)?m//g"
+                            # JSON esscape by sed -e 's/"/\\"/g' -e 's/\//\\\//g'
+                            # Add <br> tag to the tail of each lines by sed -e 's/$/<br>/g'
+                            cat $HOME/results/${file} | sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})*)?m//g" | sed -e 's/"/\\"/g' -e 's/\//\\\//g' -e 's/$/<br>/g' >> $HOME/result.dat
+
+                            echo "merged:"${file}
+                        done
+
+                        # In case of size of the output file is over 65500 bytes, truncate it.
+                        # Because maximum comment size of GitHub API is 65535 bytes.
+                        outsize=$(stat -c %s $HOME/result.dat)
+                        if [ $outsize -gt 65500 ]; then
+                            echo "size of result.dat is "$outsize
+                            truncate -s 65500 $HOME/result.dat
+                            echo " ... " >> $HOME/result.dat
+                        fi
+
+                        echo "---"
+                        ls -l $HOME/result.dat
+                        echo "---"
+
+                        # When the size of result.dat is 0, skip POST.
+                        if [ -s $HOME/result.dat ]; then
+                            # Add closure tag of JSON data.
+                            echo "\"}" >> $HOME/result.dat
+                            
+                            PR_NUM=`echo "${CIRCLE_PULL_REQUEST}" | sed -e 's/.*\///g'`
+                            PROJECT=`echo "${CIRCLE_PULL_REQUEST}" | cut -d "/" -f4`
+                            
+                            # Call GitHub API.
+                            # Post the contents of result.dat into the comment of pull request.
+                            curl -H "Content-Type: application/json" -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" -d @$HOME/result.dat -X POST https://api.github.com/repos/${PROJECT}/${CIRCLE_PROJECT_REPONAME}/issues/${PR_NUM}/comments
+
+                            # For the purpose to indicate error on GitHub, exit status is 1.
+                            exit 1
+                        fi
+                    fi
+
+workflows:
+    normal:
+        jobs:
+            - build
