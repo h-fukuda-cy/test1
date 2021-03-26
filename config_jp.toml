@@ -31,6 +31,7 @@ typographer = false
 
 [Languages]
 [Languages.en]
+footer_links = "csv/links_ja_JP.csv"
 
 [Languages.ja]
 weight = 1
