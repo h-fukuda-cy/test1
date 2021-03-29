@@ -92,7 +92,6 @@ commands:
                     LANGTOML=$HOME"/project/doc_checker/tclint_<< parameters.lang >>.toml"
                     REGSTR="s/\/home\/circleci\/linttarget_<< parameters.lang >>/<p>/g"
 
-                    echo "REPO NAME ="${CIRCLE_PROJECT_REPONAME}
                     if [ "<< parameters.lang >>" = "new" ] && [ "`echo ${CIRCLE_PROJECT_REPONAME} | grep 'office'`" ]; then
                         echo "skipped file check process."
                     else
@@ -167,9 +166,8 @@ commands:
                     REGSTR="s/\/home\/circleci\/hugowork//g"
 
                     if [ "<< parameters.region >>" = "jp" ] && [ ! -s $TOML ]; Then
-                            # Japanese only products have one toml file without region name
-                            TOML=$HOME"/project/config.toml"
-                        fi
+                        # Japanese only products have one toml file without region name
+                        TOML=$HOME"/project/config.toml"
                     fi
 
                     if [ -s $TOML ]; then
