@@ -92,54 +92,59 @@ commands:
                     LANGTOML=$HOME"/project/doc_checker/tclint_<< parameters.lang >>.toml"
                     REGSTR="s/\/home\/circleci\/linttarget_<< parameters.lang >>/<p>/g"
 
-                    if [ -s $SOURCEDIR ]; then
-                        if [ -s $LINTRC ]; then
-                            # Currently zh resources does not have .textlintrc.
-                            echo "Execute textlint for << parameters.lang >> files."
-                            # Execute textlint
-                            $(npm bin)/textlint -c $LINTRC $SOURCEDIR -f compact -o $TMPFILE || true
-                            # echo -n -e "\n" >> $TMPFILE
-                        fi
-
-                        if [ -s $TMPFILE ]; then
-                            # Write header line into the result file.
-                            echo "<hr>[Checking << parameters.lang >> contents by textlint]<br>" > $OUTFILE
-
-                            # Remove CircleCI depended path.
-                            sed -e $REGSTR $TMPFILE >> $OUTFILE
-
-                            # Remove temp file.
-                            rm $TMPFILE
-                        else
-                            echo "*** There is no error."
-                        fi
-
-                        if [ -s $LANGTOML ]; then
-                            # At the newly added files check, this process will be skipped.
-                            echo "Execute tclint for << parameters.lang >> files."
-                            # Execute tclint
-                            cp $LANGTOML ./tclint.toml
-                            ./tclint $SOURCEDIR > $TMPFILE
-
-                            rm ./tclint.toml
-                        fi
-
-                        if [ -s $TMPFILE ]; then
-                            # Write header line into the result file.
-                            echo "<hr>[Checking << parameters.lang >> contents by tclint]<br>" >> $OUTFILE
-
-                            # Remove CircleCI depended path.
-                            sed -e $REGSTR $TMPFILE >> $OUTFILE
-
-                            # Remove temp file.
-                            rm $TMPFILE
-
-                            cat $OUTFILE
-                        else
-                            echo "*** There is no error."
-                        fi
+                    echo "REPO NAME ="${CIRCLE_PROJECT_REPONAME}
+                    if [ "<< parameters.lang >>" = "new" ] && [ ${CIRCLE_PROJECT_REPONAME} = "office" ]; then
+                        echo "skipped file check process."
                     else
-                        echo "*** There are no changed files."
+                        if [ -s $SOURCEDIR ]; then
+                            if [ -s $LINTRC ]; then
+                                # Currently zh resources does not have .textlintrc.
+                                echo "Execute textlint for << parameters.lang >> files."
+                                # Execute textlint
+                                $(npm bin)/textlint -c $LINTRC $SOURCEDIR -f compact -o $TMPFILE || true
+                                # echo -n -e "\n" >> $TMPFILE
+                            fi
+
+                            if [ -s $TMPFILE ]; then
+                                # Write header line into the result file.
+                                echo "<hr>[Checking << parameters.lang >> contents by textlint]<br>" > $OUTFILE
+
+                                # Remove CircleCI depended path.
+                                sed -e $REGSTR $TMPFILE >> $OUTFILE
+
+                                # Remove temp file.
+                                rm $TMPFILE
+                            else
+                                echo "*** There is no error."
+                            fi
+
+                            if [ -s $LANGTOML ]; then
+                                # At the newly added files check, this process will be skipped.
+                                echo "Execute tclint for << parameters.lang >> files."
+                                # Execute tclint
+                                cp $LANGTOML ./tclint.toml
+                                ./tclint $SOURCEDIR > $TMPFILE
+
+                                rm ./tclint.toml
+                            fi
+
+                            if [ -s $TMPFILE ]; then
+                                # Write header line into the result file.
+                                echo "<hr>[Checking << parameters.lang >> contents by tclint]<br>" >> $OUTFILE
+
+                                # Remove CircleCI depended path.
+                                sed -e $REGSTR $TMPFILE >> $OUTFILE
+
+                                # Remove temp file.
+                                rm $TMPFILE
+
+                                cat $OUTFILE
+                            else
+                                echo "*** There is no error."
+                            fi
+                        else
+                            echo "*** There are no changed files."
+                        fi
                     fi
 
 
@@ -156,16 +161,19 @@ commands:
                 name: execute Hugo on << parameters.region >>
                 command: |
 
-                    # Currently the target contents are Japanese only
-                    SOURCEDIR=$HOME"/orgfiles_ja/content"
-
                     TOML=$HOME"/project/config_<< parameters.region >>.toml"
                     TMPFILE="hugo_error.tmp"
                     OUTFILE=$HOME"/results/<< parameters.number >>_hugo_error_ja_<< parameters.region >>.txt"
                     REGSTR="s/\/home\/circleci\/hugowork//g"
 
-                    if [ -s $SOURCEDIR -a -s $TOML ]; then
-                        echo "Hugo execute for << parameters.region >> region."
+                    if [ "<< parameters.lang >>" = "ja" ] && [ ! -s $TOML ]; Then
+                            # Japanese only products have one toml file without region name
+                            TOML=$HOME"/project/config.toml"
+                        fi
+                    fi
+
+                    if [ -s $TOML ]; then
+                        echo "Execut Hugo for << parameters.region >> region."
                         cd $HOME/hugowork
 
                         # remove old files.
@@ -182,8 +190,9 @@ commands:
                         else
                             echo "Hugo executed successfully."
                         fi
+                    else
+                        echo "Can not find "$TOML
                     fi
-
 
     detect_ng_word:
 
