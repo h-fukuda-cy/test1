@@ -165,7 +165,7 @@ commands:
                     OUTFILE=$HOME"/results/<< parameters.number >>_hugo_error_ja_<< parameters.region >>.txt"
                     REGSTR="s/\/home\/circleci\/hugowork//g"
 
-                    if [ "<< parameters.region >>" = "jp" -a ! -s $TOML ]; Then
+                    if [ "<< parameters.region >>" = "jp" ] && [ ! -s $TOML ]; then
                         # Japanese only products have one toml file without region name
                         TOML=$HOME"/project/config.toml"
                     fi
