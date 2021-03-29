@@ -93,7 +93,7 @@ commands:
                     REGSTR="s/\/home\/circleci\/linttarget_<< parameters.lang >>/<p>/g"
 
                     echo "REPO NAME ="${CIRCLE_PROJECT_REPONAME}
-                    if [ "<< parameters.lang >>" = "new" ] && [ ${CIRCLE_PROJECT_REPONAME} = "office" ]; then
+                    if [ "<< parameters.lang >>" = "new" ] && [ "`echo ${CIRCLE_PROJECT_REPONAME} | grep 'office'`" ]; then
                         echo "skipped file check process."
                     else
                         if [ -s $SOURCEDIR ]; then
