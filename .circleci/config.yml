@@ -92,8 +92,8 @@ commands:
                     LANGTOML=$HOME"/project/doc_checker/tclint_<< parameters.lang >>.toml"
                     REGSTR="s/\/home\/circleci\/linttarget_<< parameters.lang >>/<p>/g"
 
-                    if [ "<< parameters.lang >>" = "new" ] && [ "`echo ${CIRCLE_PROJECT_REPONAME} | grep 'office'`" ]; then
-                        echo "skipped file check process."
+                    if [ "<< parameters.lang >>" = "new" ] && [ "`echo ${CIRCLE_PROJECT_REPONAME} | grep -E 'garon|mail|office'`" ]; then
+                        echo "skipped new file check process."
                     else
                         if [ -s $SOURCEDIR ]; then
                             if [ -s $LINTRC ]; then
