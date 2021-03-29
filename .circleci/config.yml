@@ -164,7 +164,7 @@ commands:
                     OUTFILE=$HOME"/results/<< parameters.number >>_hugo_error_ja_<< parameters.region >>.txt"
                     REGSTR="s/\/home\/circleci\/hugowork//g"
 
-                    if [ -s $SOURCEDIR -a -s $TOML]; then
+                    if [ -s $SOURCEDIR -a -s $TOML ]; then
                         echo "Hugo execute for << parameters.region >> region."
                         cd $HOME/hugowork
 
