@@ -1,2 +1,4 @@
 testA japanese document
-ver2
+ver3
+
+test** TEST **TEST
