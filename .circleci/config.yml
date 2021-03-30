@@ -16,12 +16,12 @@ commands:
     prepare_files:
 
         parameters:
-            lang:
+            target:
                 type: string
 
         steps:
             - run:
-                name: prepare << parameters.lang >> files
+                name: prepare << parameters.target >> files
                 command: |
 
                     TGREPO="origin/$(cat targetrepo)"
@@ -31,10 +31,10 @@ commands:
                     DIRLIST="targetdirs.txt"
 
                     # directories where output files will be placed
-                    SOURCEDIR=$HOME"/orgfiles_<< parameters.lang >>/"
-                    OUTDIR=$HOME"/linttarget_<< parameters.lang >>"
+                    SOURCEDIR=$HOME"/orgfiles_<< parameters.target >>/"
+                    OUTDIR=$HOME"/linttarget_<< parameters.target >>"
 
-                    if [ "<< parameters.lang >>" = "new" ]; then
+                    if [ "<< parameters.target >>" = "new" ]; then
                         # At the current operation, newly added files check will be executed on ja resource only.
                         echo "Checking newly added files on ja resources."
                         LANG="'/ja/'"
@@ -42,8 +42,8 @@ commands:
                         # Make a list of newly added files by 'git diff'.
                         eval $DIFF_NEW$TGREPO"..."$CIRCLE_BRANCH$LANG_GREP$LANG > $FILELIST || true
                     else
-                        echo "Checking << parameters.lang >> resources."
-                        LANG="'/<< parameters.lang >>/'"
+                        echo "Checking << parameters.target >> resources."
+                        LANG="'/<< parameters.target >>/'"
 
                         # Make a list of updated files by 'git diff'.
                         eval $DIFF_UPD$TGREPO"..."$CIRCLE_BRANCH$LANG_GREP$LANG > $FILELIST || true
@@ -73,40 +73,53 @@ commands:
     execute_textlint:
 
         parameters:
-            lang:
+            target:
                 type: string
             number:
                 type: string
 
         steps:
             - run:
-                name: execute textlint on << parameters.lang >> files
+                name: execute textlint on << parameters.target >> files
                 command: |
 
-                    LINTRC=$HOME"/project/doc_checker/.textlintrc_<< parameters.lang >>"
-                    SOURCEDIR=$HOME"/linttarget_<< parameters.lang >>"
+                    LINTRC=$HOME"/project/doc_checker/.textlintrc_<< parameters.target >>"
+                    SOURCEDIR=$HOME"/linttarget_<< parameters.target >>"
 
                     TMPFILE="./result.tmp"
-                    OUTFILE=$HOME"/results/<< parameters.number >>_tl_result_<< parameters.lang >>.txt"
+                    OUTFILE=$HOME"/results/<< parameters.number >>_tl_result_<< parameters.target >>.txt"
 
-                    LANGTOML=$HOME"/project/doc_checker/tclint_<< parameters.lang >>.toml"
-                    REGSTR="s/\/home\/circleci\/linttarget_<< parameters.lang >>/<p>/g"
+                    LANGTOML=$HOME"/project/doc_checker/tclint_<< parameters.target >>.toml"
+                    REGSTR="s/\/home\/circleci\/linttarget_<< parameters.target >>/<p>/g"
 
-                    if [ "<< parameters.lang >>" = "new" ] && [ "`echo ${CIRCLE_PROJECT_REPONAME} | grep -E 'garon|mail|office'`" ]; then
+                    if [ "<< parameters.target >>" = "new" ] && [ "`echo ${CIRCLE_PROJECT_REPONAME} | grep -E 'garo|mail|office'`" ]; then
                         echo "skipped new file check process."
                     else
                         if [ -s $SOURCEDIR ]; then
                             if [ -s $LINTRC ]; then
-                                # Currently zh resources does not have .textlintrc.
-                                echo "Execute textlint for << parameters.lang >> files."
+                                echo "Execute textlint for << parameters.target >> files."
                                 # Execute textlint
                                 $(npm bin)/textlint -c $LINTRC $SOURCEDIR -f compact -o $TMPFILE || true
-                                # echo -n -e "\n" >> $TMPFILE
+                            fi
+
+                            # Execute textlint with html mode on Ja only
+                            if [ << parameters.target >> = "ja" ]; then
+                                LINTRC2=$HOME"/project/doc_checker/.textlintrc_html"
+                                if [ -s $LINTRC2 ]; then
+                                    echo "Execute textlint for html files."
+                                    # Execute textlint
+                                    TMPFILE2="./result2.tmp"
+                                    $(npm bin)/textlint -c $LINTRC2 $SOURCEDIR -f compact -o $TMPFILE2 || true
+
+                                if [ -s $TMPFILE2 ]; then
+                                    cat $TMPFILE2 >> $TMPFILE
+                                    rm $TMPFILE2
+                                fi
                             fi
 
                             if [ -s $TMPFILE ]; then
                                 # Write header line into the result file.
-                                echo "<hr>[Checking << parameters.lang >> contents by textlint]<br>" > $OUTFILE
+                                echo "<hr>[Checking << parameters.target >> contents by textlint]<br>" > $OUTFILE
 
                                 # Remove CircleCI depended path.
                                 sed -e $REGSTR $TMPFILE >> $OUTFILE
@@ -119,7 +132,7 @@ commands:
 
                             if [ -s $LANGTOML ]; then
                                 # At the newly added files check, this process will be skipped.
-                                echo "Execute tclint for << parameters.lang >> files."
+                                echo "Execute tclint for << parameters.target >> files."
                                 # Execute tclint
                                 cp $LANGTOML ./tclint.toml
                                 ./tclint $SOURCEDIR > $TMPFILE
@@ -129,7 +142,7 @@ commands:
 
                             if [ -s $TMPFILE ]; then
                                 # Write header line into the result file.
-                                echo "<hr>[Checking << parameters.lang >> contents by tclint]<br>" >> $OUTFILE
+                                echo "<hr>[Checking << parameters.target >> contents by tclint]<br>" >> $OUTFILE
 
                                 # Remove CircleCI depended path.
                                 sed -e $REGSTR $TMPFILE >> $OUTFILE
@@ -345,28 +358,28 @@ jobs:
 
             # Execute textlint on Japanese contents
             - execute_textlint:
-                lang: "ja"
+                target: "ja"
                 number: "10"
 
             # Execute textlint on English contents
             - prepare_files:
-                lang: "en"
+                target: "en"
             - execute_textlint:
-                lang: "en"
+                target: "en"
                 number: "11"
 
             # Execute textlint on Chinese contents
             - prepare_files:
-                lang: "zh"
+                target: "zh"
             - execute_textlint:
-                lang: "zh"
+                target: "zh"
                 number: "12"
 
             # Execute textlint on newly added contents
             - prepare_files:
-                lang: "new"
+                target: "new"
             - execute_textlint:
-                lang: "new"
+                target: "new"
                 number: "20"
 
             # NG word checker will be executed on html files.
