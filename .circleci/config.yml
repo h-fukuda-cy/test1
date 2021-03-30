@@ -322,7 +322,7 @@ jobs:
                     chmod +x $HOME/hugowork/wordcheck
 
             - prepare_files:
-                lang: "ja"
+                target: "ja"
 
             - run:
                 name: Check ja files by markdownlint
