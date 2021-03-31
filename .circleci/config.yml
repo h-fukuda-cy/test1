@@ -113,7 +113,7 @@ commands:
                                 fi
 
                                 if [ -s $TMPFILE2 ]; then
-                                    echo "\n--- HTML check ---\n" >> $TMPFILE
+                                    echo "\n\n--- HTML check ---" >> $TMPFILE
                                     cat $TMPFILE2 >> $TMPFILE
                                     rm $TMPFILE2
                                 fi
