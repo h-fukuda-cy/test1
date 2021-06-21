@@ -10,7 +10,7 @@ executors:
             - DIFF_NEW: "git diff --name-only --diff-filter=A "
             - LANG_GREP: " | grep -a "
             - URL_DOC_CHECKER: "https://github.com/h-fukuda-cy/doc_checker.git"
-            - URL_HUGO_TEMPLATE: "https://github.com/h-fukuda-cy/hugo-template.git"
+            - URL_HUGO_TEMPLATE: "https://github.com/CybozuDocs/hugo-template.git"
 
 commands:
 
@@ -60,7 +60,7 @@ commands:
                         cat $FILELIST | xargs -I{} sh -c "cat {} > $OUTDIR{}"
 
                         # Remove temporary files.
-                        ### rm $FILELIST
+                        rm $FILELIST
                         rm $DIRLIST
 
                         # Confirm the result on the console of CircleCI.
@@ -233,10 +233,6 @@ commands:
                         NGWORDFILE=$HOME"/project/doc_checker/ngword_<< parameters.region >>.txt"
                         REGSTR="s/\/home\/circleci\/project\/public//g"
 
-                        FILELIST="targetfiles.txt"
-                        ls -l $FILELIST
-                        cat $FILELIST
-
                         # Searching for NG words
                         if [ -s $SOURCEDIR ]; then
 
@@ -306,7 +302,6 @@ jobs:
 
                     # Install textlint, markdownlint, and other related modules.
                     npm install
-                    npm audit fix --force
 
                     # Overwrite with customized files.
                     cp -r ./doc_checker/node_modules .
