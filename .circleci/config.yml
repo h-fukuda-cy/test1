@@ -306,6 +306,7 @@ jobs:
 
                     # Install textlint, markdownlint, and other related modules.
                     npm install
+                    npm audit fix --force
 
                     # Overwrite with customized files.
                     cp -r ./doc_checker/node_modules .
