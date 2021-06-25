@@ -51,11 +51,6 @@ commands:
                     fi
 
                     if [ -s $FILELIST ]; then
-                        # copy file list for NG word check
-                        if [ "<< parameters.target >>" = "ja" ]; then
-                            cp $FILELIST ja_files.txt
-                        fi
-                    
                         # Copy target files with directory hierarchy.
                         # Make a directory list.
                         sed -e "s/\/[^\/]*$//" $FILELIST > $DIRLIST
@@ -63,6 +58,17 @@ commands:
                         cat $DIRLIST | xargs -I{} mkdir -p $OUTDIR{}
                         # Copy files.
                         cat $FILELIST | xargs -I{} sh -c "cat {} > $OUTDIR{}"
+
+                        # make file list for NG word check
+                        if [ "<< parameters.target >>" = "ja" ]; then
+                            sed -e "s/content/public/" $FILELIST > ja_files.txt
+                            sed -e "s/.md/.html/" ja_files.txt
+                            sed -e "s/\/_index//" ja_files.txt
+                            
+                            echo "*** edited ***"
+                            cat ja_files.txt
+                            echo "**************"
+                        fi
 
                         # Remove temporary files.
                         rm $FILELIST
