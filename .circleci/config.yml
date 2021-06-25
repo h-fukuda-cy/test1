@@ -61,9 +61,9 @@ commands:
 
                         # make file list for NG word check
                         if [ "<< parameters.target >>" = "ja" ]; then
-                            sed -e "s/content/public/" $FILELIST > ja_files.txt
-                            sed -e "s/.md/.html/" ja_files.txt
-                            sed -e "s/\/_index//" ja_files.txt
+                            sed -e "s/content/public/" $FILELIST > ja_files_0.txt
+                            sed -e "s/.md/.html/" ja_files_0.txt > ja_files_1.txt
+                            sed -e "s/\/_index//" ja_files_1.txt > ja_files.txt
                             
                             echo "*** edited ***"
                             cat ja_files.txt
