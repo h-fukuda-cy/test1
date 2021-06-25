@@ -50,10 +50,11 @@ commands:
                         eval $DIFF_UPD$TGREPO"..."$CIRCLE_BRANCH$LANG_GREP$LANG > $FILELIST || true
                     fi
 
-                    echo "*****"
-                    ls -l $FILELIST
-
                     if [ -s $FILELIST ]; then
+                        if [ "<< parameters.target >>" = "new" ]; then
+                            cp $FILELIST ja_files.txt
+                        fi
+                    
                         # Copy target files with directory hierarchy.
                         # Make a directory list.
                         sed -e "s/\/[^\/]*$//" $FILELIST > $DIRLIST
@@ -63,6 +64,7 @@ commands:
                         cat $FILELIST | xargs -I{} sh -c "cat {} > $OUTDIR{}"
 
                         # Remove temporary files.
+                        rm $FILELIST
                         rm $DIRLIST
 
                         # Confirm the result on the console of CircleCI.
@@ -236,7 +238,7 @@ commands:
                         REGSTR="s/\/home\/circleci\/project\/public//g"
 
                         # made by prepare_files function
-                        FILELIST="targetfiles.txt"
+                        FILELIST="ja_files.txt"
                         
                         echo "*****FILELIST*****"
                         ls -l $FILELIST
