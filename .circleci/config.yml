@@ -60,7 +60,6 @@ commands:
                         cat $FILELIST | xargs -I{} sh -c "cat {} > $OUTDIR{}"
 
                         # Remove temporary files.
-                        rm $FILELIST
                         rm $DIRLIST
 
                         # Confirm the result on the console of CircleCI.
@@ -107,12 +106,12 @@ commands:
                                     # Execute textlint
                                     TMPFILE2="./result2.tmp"
                                     $(npm bin)/textlint -c $LINTRC2 $SOURCEDIR -f compact -o $TMPFILE2 || true
-                                fi
-
-                                if [ -s $TMPFILE2 ]; then
-                                    echo "\n\n--- HTML check ---" >> $TMPFILE
-                                    cat $TMPFILE2 >> $TMPFILE
-                                    rm $TMPFILE2
+                                    
+                                    if [ -s $TMPFILE2 ]; then
+                                        echo "\n\n--- HTML check ---" >> $TMPFILE
+                                        cat $TMPFILE2 >> $TMPFILE
+                                        rm $TMPFILE2
+                                    fi
                                 fi
                             fi
 
@@ -232,6 +231,14 @@ commands:
                         OUTFILE=$HOME"/results/<< parameters.number >>_ngword_ja_<< parameters.region >>.txt"
                         NGWORDFILE=$HOME"/project/doc_checker/ngword_<< parameters.region >>.txt"
                         REGSTR="s/\/home\/circleci\/project\/public//g"
+
+                        # made by prepare_files function
+                        FILELIST="targetfiles.txt"
+                        
+                        echo "*****FILELIST*****"
+                        cat $FILELIST
+                        echo "******************"
+                        
 
                         # Searching for NG words
                         if [ -s $SOURCEDIR ]; then
