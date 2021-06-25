@@ -50,6 +50,9 @@ commands:
                         eval $DIFF_UPD$TGREPO"..."$CIRCLE_BRANCH$LANG_GREP$LANG > $FILELIST || true
                     fi
 
+                    echo "*****"
+                    ls -l $FILELIST
+
                     if [ -s $FILELIST ]; then
                         # Copy target files with directory hierarchy.
                         # Make a directory list.
