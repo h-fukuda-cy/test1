@@ -324,14 +324,20 @@ jobs:
                     mkdir $HOME/targetfiles_new
 
                     # Copy executable binary files to the working directory.
-                    cp $HOME/project/doc_checker/tclint .
-                    chmod +x ./tclint
+                    if [ -f $HOME/project/doc_checker/tclint ]; then
+                        cp $HOME/project/doc_checker/tclint .
+                        chmod +x ./tclint
+                    fi
 
-                    cp $HOME/project/doc_checker/hugo .
-                    chmod +x ./hugo
+                    if [ -f $HOME/project/doc_checker/hugo ]; then
+                        cp $HOME/project/doc_checker/hugo .
+                        chmod +x ./hugo
+                    fi
 
-                    cp $HOME/project/doc_checker/wordcheck .
-                    chmod +x ./wordcheck
+                    if [ -f $HOME/project/doc_checker/wordcheck ]; then
+                        cp $HOME/project/doc_checker/wordcheck .
+                        chmod +x ./wordcheck
+                    fi
 
             - prepare_files:
                 target: "ja"
