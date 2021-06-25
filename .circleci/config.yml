@@ -51,7 +51,8 @@ commands:
                     fi
 
                     if [ -s $FILELIST ]; then
-                        if [ "<< parameters.target >>" = "new" ]; then
+                        # copy file list for NG word check
+                        if [ "<< parameters.target >>" = "ja" ]; then
                             cp $FILELIST ja_files.txt
                         fi
                     
@@ -240,11 +241,12 @@ commands:
                         # made by prepare_files function
                         FILELIST="ja_files.txt"
                         
-                        echo "*****FILELIST*****"
-                        ls -l $FILELIST
-                        cat $FILELIST
+                        if [ -s $FILELIST ]; then
+                            echo "*****FILELIST*****"
+                            ls -l $FILELIST
+                            cat $FILELIST
                         echo "******************"
-                        
+                        fi
 
                         # Searching for NG words
                         if [ -s $SOURCEDIR ]; then
