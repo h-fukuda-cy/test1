@@ -244,7 +244,7 @@ commands:
                         if [ -s $SOURCEDIR ]; then
 
                             # Execute NG word checker
-                            ./wordcheck $SOURCEDIR html $NGWORDFILE 2>&1 1>/dev/null | sed -e $REGSTR >> $TMPFILE || true
+                            ./wordcheck2 $FILELIST $NGWORDFILE 1>/dev/null | sed -e $REGSTR >> $TMPFILE || true
 
                             if [ -s $TMPFILE ]; then
                                 echo "<hr>[NG word check on << parameters.region >> region]<br>" > $OUTFILE
@@ -330,8 +330,8 @@ jobs:
                     cp $HOME/project/doc_checker/hugo .
                     chmod +x ./hugo
 
-                    cp $HOME/project/doc_checker/wordcheck .
-                    chmod +x ./wordcheck
+                    cp $HOME/project/doc_checker/wordcheck2 .
+                    chmod +x ./wordcheck2
 
             - prepare_files:
                 target: "ja"
