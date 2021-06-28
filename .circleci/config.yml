@@ -64,10 +64,10 @@ commands:
                         # prepare file list for NG word check
                         sed -e "s/content/public/" $FILELIST > dif1.txt
                         sed -e "s/.md/.html/" dif1.txt > dif2.txt
-                        sed -e "s/\/_index//" > $DIFFILES
+                        sed -e "s/\/_index//" > $DIFFFILES
                         
-                        ls -l $DIFFILES
-                        cat $DIFFILES
+                        ls -l $DIFFFILES
+                        cat $DIFFFILES
 
                         # Remove temporary files.
                         rm $FILELIST
