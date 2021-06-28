@@ -31,6 +31,8 @@ commands:
                     # temporaly files
                     FILELIST="targetfiles.txt"
                     DIRLIST="targetdirs.txt"
+                    
+                    DIFFFILES="difffiles.txt"
 
                     # directories where output files will be placed
                     OUTDIR=$HOME"/targetfiles_<< parameters.target >>/"
@@ -58,8 +60,16 @@ commands:
                         cat $DIRLIST | xargs -I{} mkdir -p $OUTDIR{}
                         # Copy files.
                         cat $FILELIST | xargs -I{} sh -c "cat {} > $OUTDIR{}"
-
+                        
+                        # prepare file list for NG word check
+                        sed -e "s/content/public/" $FILELIST > diff1.txt
+                        sed -e "s/.md/.html/" diff1.txt > diff2.txt
+                        sed -e "s/\/_index//" diff2.txt > $DIFFFILES
+                        
+                        ls -l $DIFFFILES
+                        
                         # Remove temporary files.
+                        rm $FILELIST
                         rm $DIRLIST
 
                         # Confirm the result on the console of CircleCI.
@@ -233,18 +243,21 @@ commands:
                         REGSTR="s/\/home\/circleci\/project\/public//g"
 
                         # made by prepare_files function
-                        FILELIST="targetfiles.txt"
-                        
-                        echo "*****FILELIST*****"
-                        cat $FILELIST
-                        echo "******************"
-                        
+                        FILELIST="difffiles.txt"
+                        ls -l $FILELIST
+
+
+                        ls -l public/ja
 
                         # Searching for NG words
                         if [ -s $SOURCEDIR ]; then
 
                             # Execute NG word checker
-                            ./wordcheck2 $FILELIST $NGWORDFILE 1>/dev/null | sed -e $REGSTR >> $TMPFILE || true
+                            ./wordcheck2 $FILELIST $NGWORDFILE 2> nglist.txt || true
+                            
+                            ls -l nglist.txt
+                            
+                            sed -e $REGSTR nglist.txt > $TMPFILE
 
                             if [ -s $TMPFILE ]; then
                                 echo "<hr>[NG word check on << parameters.region >> region]<br>" > $OUTFILE
