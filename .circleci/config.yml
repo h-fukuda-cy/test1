@@ -61,6 +61,11 @@ commands:
                         # Copy files.
                         cat $FILELIST | xargs -I{} sh -c "cat {} > $OUTDIR{}"
 
+                        ls -l $FILELIST
+                        cat $FILELIST
+                        
+                        echo "**********"
+                        
                         # prepare file list for NG word check
                         sed -e "s/content/public/" $FILELIST > dif1.txt
                         sed -e "s/.md/.html/" dif1.txt > dif2.txt
