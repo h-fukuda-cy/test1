@@ -247,8 +247,7 @@ commands:
                         ls -l $FILELIST
 
 
-                        ls -l 
-                        ls -l public
+                        ls -l public/ja
 
                         # Searching for NG words
                         if [ -s $SOURCEDIR ]; then
