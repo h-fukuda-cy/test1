@@ -31,6 +31,8 @@ commands:
                     # temporaly files
                     FILELIST="targetfiles.txt"
                     DIRLIST="targetdirs.txt"
+                    
+                    DIFFFILES="difffiles.txt"
 
                     # directories where output files will be placed
                     OUTDIR=$HOME"/targetfiles_<< parameters.target >>/"
@@ -59,7 +61,16 @@ commands:
                         # Copy files.
                         cat $FILELIST | xargs -I{} sh -c "cat {} > $OUTDIR{}"
 
+                        # prepare file list for NG word check
+                        sed -e "s/content/public/" $FILELIST > dif1.txt
+                        sed -e "s/.md/.html" $dif1.txt > dif2.txt
+                        sed -e "s/\/_index//" > $DIFFILES
+                        
+                        ls -l $DIFFILES
+                        cat $DIFFILES
+
                         # Remove temporary files.
+                        rm $FILELIST
                         rm $DIRLIST
 
                         # Confirm the result on the console of CircleCI.
