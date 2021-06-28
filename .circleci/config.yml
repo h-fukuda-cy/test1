@@ -67,8 +67,14 @@ commands:
                         echo "**********"
                         
                         # prepare file list for NG word check
-                        sed -e "s/content/public/" $FILELIST > dif1.txt
-                        sed -e "s/.md/.html/" dif1.txt > dif2.txt
+                        sed -e "s/content/public/" $FILELIST > diff1.txt
+                        
+                        ls -l diff1.txt
+                        
+                        sed -e "s/.md/.html/" diff1.txt > diff2.txt
+                        
+                        ls -l diff2.txt
+                        
                         sed -e "s/\/_index//" > $DIFFFILES
                         
                         ls -l $DIFFFILES
