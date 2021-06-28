@@ -67,7 +67,7 @@ commands:
                         sed -e "s/\/_index//" diff2.txt > $DIFFFILES
                         
                         ls -l $DIFFFILES
-
+                        
                         # Remove temporary files.
                         rm $FILELIST
                         rm $DIRLIST
@@ -244,19 +244,21 @@ commands:
 
                         # made by prepare_files function
                         FILELIST="difffiles.txt"
-                        
-                        echo "*****FILELIST*****"
-                        cat $FILELIST
-                        echo "******************"
-                        
+                        ls -l $FILELIST
+
+
+                        ls -l 
+                        ls -l public
 
                         # Searching for NG words
                         if [ -s $SOURCEDIR ]; then
 
                             # Execute NG word checker
-                            ./wordcheck2 $FILELIST $NGWORDFILE
+                            ./wordcheck2 $FILELIST $NGWORDFILE 2> nglist.txt || true
                             
-                            ./wordcheck2 $FILELIST $NGWORDFILE 1>/dev/null | sed -e $REGSTR >> $TMPFILE || true
+                            ls -l nglist.txt
+                            
+                            sed -e $REGSTR nglist.txt > $TMPFILE
 
                             if [ -s $TMPFILE ]; then
                                 echo "<hr>[NG word check on << parameters.region >> region]<br>" > $OUTFILE
