@@ -60,22 +60,11 @@ commands:
                         cat $DIRLIST | xargs -I{} mkdir -p $OUTDIR{}
                         # Copy files.
                         cat $FILELIST | xargs -I{} sh -c "cat {} > $OUTDIR{}"
-
-                        ls -l $FILELIST
-                        cat $FILELIST
-                        
-                        echo "**********"
                         
                         # prepare file list for NG word check
                         sed -e "s/content/public/" $FILELIST > diff1.txt
-                        
-                        ls -l diff1.txt
-                        
                         sed -e "s/.md/.html/" diff1.txt > diff2.txt
-                        
-                        ls -l diff2.txt
-                        
-                        sed -e "s/\/_index//" > $DIFFFILES
+                        sed -e "s/\/_index//" diff2.txt > $DIFFFILES
                         
                         ls -l $DIFFFILES
                         cat $DIFFFILES
@@ -255,7 +244,7 @@ commands:
                         REGSTR="s/\/home\/circleci\/project\/public//g"
 
                         # made by prepare_files function
-                        FILELIST="targetfiles.txt"
+                        FILELIST="difffiles.txt"
                         
                         echo "*****FILELIST*****"
                         cat $FILELIST
