@@ -63,7 +63,7 @@ commands:
 
                         # prepare file list for NG word check
                         sed -e "s/content/public/" $FILELIST > dif1.txt
-                        sed -e "s/.md/.html" $dif1.txt > dif2.txt
+                        sed -e "s/.md/.html/" $dif1.txt > dif2.txt
                         sed -e "s/\/_index//" > $DIFFILES
                         
                         ls -l $DIFFILES
