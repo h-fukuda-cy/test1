@@ -1,0 +1,50 @@
+baseurl = "/"
+UglyURLs = true
+theme = "hugo-template"
+metadataformat = "yaml"
+DefaultContentLanguage = "ja"
+defaultContentLanguageInSubdir= true
+ignoreErrors = ["error-remote-getcsv"]
+
+[params]
+product = "test"
+domain = "jp.xxx.help"
+TargetRegion = "US"
+kintone = "kintone"
+service = "xxx.com"
+cybozu_com = "xxx.com"
+favicon = ""
+langSelector = true
+logo=""
+og_img = ""
+meganav = false
+google_search = true
+
+[taxonomies]
+
+[markup.goldmark.renderer]
+unsafe= true
+
+[markup.goldmark.extensions]
+linkify = false
+typographer = false
+
+[Languages]
+[Languages.en]
+footer_links = "csv/links_ja_JP.csv"
+
+[Languages.ja]
+weight = 1
+title = "test ヘルプ"
+product_name = "test"
+help = "ヘルプ"
+LanguageName = "日本語"
+contentDir = "content/ja"
+footer_links = "csv/links_ja_JP.csv"
+languageCode = "ja-jp"
+store = "ストア"
+CorpName = "xxx"
+slash = "cyboxxxzu.com"
+slash_help = "xxx.com ヘルプ"
+
+
