@@ -61,13 +61,9 @@ commands:
 
                         # make file list for NG word check
                         if [ "<< parameters.target >>" = "ja" ]; then
-                            sed -e "s/content/public/" $FILELIST > ja_files_0.txt
-                            sed -e "s/.md/.html/" ja_files_0.txt > ja_files_1.txt
-                            sed -e "s/\/_index//" ja_files_1.txt > ja_files.txt
-                            
-                            echo "*** edited ***"
-                            cat ja_files.txt
-                            echo "**************"
+                            sed -e "s/content/public/" $FILELIST > ja_files_1.txt
+                            sed -e "s/.md/.html/" ja_files_1.txt > ja_files_2.txt
+                            sed -e "s/\/_index//" ja_files_2.txt > ja_files.txt
                         fi
 
                         # Remove temporary files.
@@ -248,17 +244,14 @@ commands:
                         FILELIST="ja_files.txt"
                         
                         if [ -s $FILELIST ]; then
-                            echo "*****FILELIST*****"
-                            ls -l $FILELIST
-                            cat $FILELIST
-                        echo "******************"
+
                         fi
 
                         # Searching for NG words
                         if [ -s $SOURCEDIR ]; then
 
                             # Execute NG word checker
-                            ./wordcheck $SOURCEDIR html $NGWORDFILE 2>&1 1>/dev/null | sed -e $REGSTR >> $TMPFILE || true
+                            ./wordcheck2 $SOURCEDIR html $NGWORDFILE 2>&1 1>/dev/null | sed -e $REGSTR >> $TMPFILE || true
 
                             if [ -s $TMPFILE ]; then
                                 echo "<hr>[NG word check on << parameters.region >> region]<br>" > $OUTFILE
@@ -348,9 +341,9 @@ jobs:
                         chmod +x ./hugo
                     fi
 
-                    if [ -f $HOME/project/doc_checker/wordcheck ]; then
-                        cp $HOME/project/doc_checker/wordcheck .
-                        chmod +x ./wordcheck
+                    if [ -f $HOME/project/doc_checker/wordcheck2 ]; then
+                        cp $HOME/project/doc_checker/wordcheck2 .
+                        chmod +x ./wordcheck2
                     fi
 
             - prepare_files:
