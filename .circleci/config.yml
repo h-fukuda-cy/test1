@@ -519,6 +519,5 @@ jobs:
 workflows:
     normal:
         jobs:
-            - build
+            - build:
                 context: github-context
-                
