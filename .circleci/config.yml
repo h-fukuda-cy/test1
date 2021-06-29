@@ -277,6 +277,7 @@ jobs:
 
             - run:
                 name: Get the base branch name of the pull request
+                context: github-context
                 command: |
 
                     PR_NUM=`echo "${CIRCLE_PULL_REQUEST}" | sed -e 's/.*\///g'`
@@ -285,6 +286,8 @@ jobs:
                     # Retrieve the base branch name using GitHub API.
                     # The base branch name will be used git diff.
                     curl -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" -X GET https://api.github.com/repos/${PROJECT}/${CIRCLE_PROJECT_REPONAME}/pulls/${PR_NUM} | jq .base.ref -r > targetrepo
+                   
+                    echo "context:"$GITHUB_ACCESS_TOKEN
                    
                     if [ $(cat targetrepo) = "null" ]; then
                         # Display data for the error investigation.
