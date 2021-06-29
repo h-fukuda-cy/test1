@@ -31,6 +31,9 @@ commands:
                     # temporaly files
                     FILELIST="targetfiles.txt"
                     DIRLIST="targetdirs.txt"
+                    
+                    # filelist for NG word check
+                    NGCHKLIST="ngcheck.txt"
 
                     # directories where output files will be placed
                     OUTDIR=$HOME"/targetfiles_<< parameters.target >>/"
@@ -59,8 +62,13 @@ commands:
                         # Copy files.
                         cat $FILELIST | xargs -I{} sh -c "cat {} > $OUTDIR{}"
                         
+                        
+                        if [ "<< parameters.target >>" = "ja" ]; then
+                            cp $FILELIST $NGCHKLIST
+                        fi
+                        
                         # Remove temporary files.
-                        # Do not remove $FILELIST. It will be used in NG word check.
+                        rm $FILELIST
                         rm $DIRLIST
 
                         # Confirm the result on the console of CircleCI.
@@ -234,11 +242,11 @@ commands:
                         REGSTR="s/\/home\/circleci\/project\/public//g"
 
                         # made by prepare_files function
-                        FILELIST="targetfiles.txt"
+                        FILELIST="ngcheck.txt"
                         ls -l $FILELIST
 
                         # Searching for NG words
-                        if [ -s $SOURCEDIR ]; then
+                        if [ -s $FILELIST -a -s $SOURCEDIR ]; then
 
                             # Execute NG word checker
                             ./wordcheck2 $FILELIST $NGWORDFILE 2> nglist.txt || true
