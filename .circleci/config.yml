@@ -31,8 +31,6 @@ commands:
                     # temporaly files
                     FILELIST="targetfiles.txt"
                     DIRLIST="targetdirs.txt"
-                    
-                    DIFFFILES="difffiles.txt"
 
                     # directories where output files will be placed
                     OUTDIR=$HOME"/targetfiles_<< parameters.target >>/"
@@ -61,15 +59,8 @@ commands:
                         # Copy files.
                         cat $FILELIST | xargs -I{} sh -c "cat {} > $OUTDIR{}"
                         
-                        # prepare file list for NG word check
-                        sed -e "s/content/public/" $FILELIST > diff1.txt
-                        sed -e "s/.md/.html/" diff1.txt > diff2.txt
-                        sed -e "s/\/_index//" diff2.txt > $DIFFFILES
-                        
-                        ls -l $DIFFFILES
-                        
                         # Remove temporary files.
-                        rm $FILELIST
+                        # Do not remove $FILELIST. It will be used in NG word check.
                         rm $DIRLIST
 
                         # Confirm the result on the console of CircleCI.
@@ -243,11 +234,8 @@ commands:
                         REGSTR="s/\/home\/circleci\/project\/public//g"
 
                         # made by prepare_files function
-                        FILELIST="difffiles.txt"
+                        FILELIST="targetfiles.txt"
                         ls -l $FILELIST
-
-
-                        ls -l public/ja
 
                         # Searching for NG words
                         if [ -s $SOURCEDIR ]; then
