@@ -283,6 +283,8 @@ jobs:
                     PR_NUM=`echo "${CIRCLE_PULL_REQUEST}" | sed -e 's/.*\///g'`
                     PROJECT=`echo "${CIRCLE_PULL_REQUEST}" | cut -d "/" -f4`
 
+                    echo "GITHUB_ACCESS_TOKEN="$GITHUB_ACCESS_TOKEN
+                    
                     # Retrieve the base branch name using GitHub API.
                     # The base branch name will be used git diff.
                     curl -H "Authorization: token $GITHUB_ACCESS_TOKEN" -X GET https://api.github.com/repos/${PROJECT}/${CIRCLE_PROJECT_REPONAME}/pulls/${PR_NUM} | jq .base.ref -r > targetrepo
@@ -294,9 +296,9 @@ jobs:
                         echo "CIRCLE_PULL_REQUEST="${CIRCLE_PULL_REQUEST}
                         echo "PR_NUM="${PR_NUM}
                         echo "PROJECT="${PROJECT}
-                        echo "TOKEN_LENGTH="${#GITHUB_ACCESS_TOKEN}
+                        echo "GITHUB_ACCESS_TOKEN="$GITHUB_ACCESS_TOKEN
 
-                        curl -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" -X GET https://api.github.com/repos/${PROJECT}/${CIRCLE_PROJECT_REPONAME}/pulls/${PR_NUM}
+                        curl -H "Authorization: token $GITHUB_ACCESS_TOKEN" -X GET https://api.github.com/repos/${PROJECT}/${CIRCLE_PROJECT_REPONAME}/pulls/${PR_NUM}
 
                         exit 1
                     else
@@ -508,7 +510,7 @@ jobs:
                             
                             # Call GitHub API.
                             # Post the contents of result.dat into the comment of pull request.
-                            curl -H "Content-Type: application/json" -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" -d @result.dat -X POST https://api.github.com/repos/${PROJECT}/${CIRCLE_PROJECT_REPONAME}/issues/${PR_NUM}/comments
+                            curl -H "Content-Type: application/json" -H "Authorization: token $GITHUB_ACCESS_TOKEN" -d @result.dat -X POST https://api.github.com/repos/${PROJECT}/${CIRCLE_PROJECT_REPONAME}/issues/${PR_NUM}/comments
 
                             # For the purpose to indicate error on GitHub, exit status is 1.
                             exit 1
