@@ -3,5 +3,3 @@ ver2
 
 Garoon
 
-
-
