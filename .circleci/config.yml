@@ -243,7 +243,6 @@ commands:
 
                         # made by prepare_files function
                         FILELIST="ngcheck.txt"
-                        ls -l $FILELIST
 
                         # Searching for NG words
                         if [ -s $FILELIST -a -s $SOURCEDIR ]; then
