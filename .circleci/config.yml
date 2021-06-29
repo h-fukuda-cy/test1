@@ -277,7 +277,6 @@ jobs:
 
             - run:
                 name: Get the base branch name of the pull request
-                context: github-context
                 command: |
 
                     PR_NUM=`echo "${CIRCLE_PULL_REQUEST}" | sed -e 's/.*\///g'`
@@ -521,3 +520,5 @@ workflows:
     normal:
         jobs:
             - build
+                context: github-context
+                
